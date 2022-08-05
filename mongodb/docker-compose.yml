@@ -4,6 +4,7 @@ services:
 
   mongo:
     image: mongo
+    container_name: mongodb
     restart: always
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
@@ -14,6 +15,12 @@ services:
       - /home/anjos/dev/docker/volumes/mongodb:/data/db
     networks:
       - mongo-compose-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongo mongo:27017/test --quiet
+      interval: 2s
+      timeout: 2s
+      start_period: 5s
+      retries: 5
   
   mongo-express:
     image: mongo-express
@@ -24,6 +31,9 @@ services:
       ME_CONFIG_MONGODB_ADMINUSERNAME: root
       ME_CONFIG_MONGODB_ADMINPASSWORD: example
       ME_CONFIG_MONGODB_URL: mongodb://root:example@mongo:27017/
+    depends_on:
+      mongo:
+        condition: service_healthy
     networks:
       - mongo-compose-network
 
